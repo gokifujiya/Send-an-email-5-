@@ -1,0 +1,22 @@
+# Ignore system / environment files
+.DS_Store
+*.log
+*.bak
+*.tmp
+*.swp
+
+# Composer & vendor
+/vendor/
+composer.lock
+
+# PHP session files & runtime
+/storage/
+*.sess
+
+# IDE / editor
+.vscode/
+.idea/
+
+# OS / cache
+__pycache__/
+node_modules/

@@ -1,0 +1,19 @@
+{
+  "name": "goki/php_dynamic_server_v2",
+  "require": {
+    "php": ">=8.1",
+    "nesbot/carbon": "^3.10"
+  },
+  "autoload": {
+    "psr-4": {
+      "Database\\": "Database/",
+      "Helpers\\": "Helpers/",
+      "Response\\": "Response/",
+      "Models\\": "Models/",
+      "Types\\": "Types/"
+    }
+  },
+  "require-dev": {
+    "fakerphp/faker": "^1.24"
+  }
+}
