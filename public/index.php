@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 
+// public/index.php (top, before routes are loaded)
+require_once __DIR__ . '/../Helpers/Settings.php';
+\Helpers\Settings::load(__DIR__ . '/../.env');
+
 set_include_path(get_include_path() . PATH_SEPARATOR . realpath(__DIR__ . '/..'));
 spl_autoload_extensions(".php");
 spl_autoload_register(function($class) {

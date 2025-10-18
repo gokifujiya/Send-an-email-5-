@@ -20,3 +20,4 @@ composer.lock
 # OS / cache
 __pycache__/
 node_modules/
+.env

@@ -5,6 +5,7 @@ require_once __DIR__ . '/../Response/HTMLRenderer.php';
 require_once __DIR__ . '/../Response/FlashData.php';
 require_once __DIR__ . '/../Response/Render/RedirectRenderer.php';
 require_once __DIR__ . '/../Response/Render/JSONRenderer.php';          // ← add
+require_once __DIR__ . '/../Response/Render/MediaRenderer.php';   // ← add this
 
 // Helpers
 require_once __DIR__ . '/../Helpers/Authenticate.php';
@@ -26,6 +27,7 @@ use Response\HTTPRenderer;
 use Response\HTMLRenderer;
 use Response\Render\RedirectRenderer;
 use Response\Render\JSONRenderer;                                       // ← add
+use Response\Render\MediaRenderer;                                // ← add this
 use Response\FlashData;
 
 use Helpers\Authenticate;
@@ -236,5 +238,51 @@ return [
             return new JSONRenderer(['status' => 'error', 'message' => 'An error occurred.']);
         }
     })->setMiddleware(['auth']),
+
+    // --- Signed media test routes ---
+
+    // (A) Protected route: serves JPG only if the signed URL is valid
+    'test/share/files/jpg' => Route::create('test/share/files/jpg', function (): HTTPRenderer {
+        // This route is reached only if the 'signature' middleware validated the URL.
+        $required_fields = [
+            'user'     => ValueType::STRING,
+            'filename' => ValueType::STRING, // In prod, validate more strictly.
+        ];
+
+        $validated = ValidationHelper::validateFields($required_fields, $_GET);
+
+        // Light hardening against traversal / weird names (optional)
+        if (!preg_match('/^[A-Za-z0-9._-]{1,100}$/', $validated['user'])) {
+            $validated['user'] = '__not_found__';
+        }
+        if (!preg_match('/^[A-Za-z0-9._-]{1,100}$/', $validated['filename'])) {
+            $validated['filename'] = '__not_found__';
+        }
+
+        // Reads: project_root/private/shared/{user}/{filename}.jpg
+        return new MediaRenderer(
+            sprintf('private/shared/%s/%s', $validated['user'], $validated['filename']),
+            'jpg'
+        );
+    })->setMiddleware(['signature']),
+
+    // (B) Generator route: returns a signed URL as JSON
+    'test/share/files/jpg/generate-url' => Route::create('test/share/files/jpg/generate-url', function (): HTTPRenderer {
+        $required_fields = [
+            'user'     => ValueType::STRING,
+            'filename' => ValueType::STRING,
+        ];
+        $validated = ValidationHelper::validateFields($required_fields, $_GET);
+
+        // Build a signed link for the (A) route
+        $signedUrl = Route::create('test/share/files/jpg', function () {})
+            ->getSignedURL([
+                'user'     => $validated['user'],
+                'filename' => $validated['filename'],
+            ]);
+
+        return new JSONRenderer(['url' => $signedUrl]);
+    }),
+
 ];
 
