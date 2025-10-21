@@ -1,23 +1,18 @@
-# Ignore system / environment files
+# Environment and sensitive data
+.env
+private/
+public/images/file-not-found.jpg
+
+# OS / IDE
 .DS_Store
 *.log
-*.bak
-*.tmp
-*.swp
-
-# Composer & vendor
-/vendor/
-composer.lock
-
-# PHP session files & runtime
-/storage/
-*.sess
-
-# IDE / editor
 .vscode/
 .idea/
 
-# OS / cache
-__pycache__/
-node_modules/
-.env
+# Vendor and cache
+vendor/
+composer.lock
+
+# Temporary
+storage/
+trash_misc/

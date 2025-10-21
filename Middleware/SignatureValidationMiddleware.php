@@ -1,6 +1,7 @@
 <?php
 namespace Middleware;
 
+use Helpers\ValidationHelper;
 use Response\FlashData;
 use Response\HTTPRenderer;
 use Response\Render\RedirectRenderer;
@@ -10,26 +11,43 @@ class SignatureValidationMiddleware implements Middleware
 {
     public function handle(callable $next): HTTPRenderer
     {
-        $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
+        $currentPath = $_SERVER['REQUEST_URI'] ?? '';
         $parsedUrl = parse_url($currentPath);
-        $pathOnly  = $parsedUrl['path'] ?? '/';
+        $pathWithoutQuery = $parsedUrl['path'] ?? '';
 
-        // Build a Route object for the current path
-        $route = Route::create($pathOnly, function () {});
+        // Build a Route for the current path
+        $route = Route::create($pathWithoutQuery, function(){});
 
-        // Compose "host + currentPath" (no scheme); Route will normalize
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $full = $host . $currentPath;
+        // Validate signature first (includes all params except 'signature')
+        if ($route->isSignedURLValid(($_SERVER['HTTP_HOST'] ?? 'localhost') . $currentPath, /*absolute*/ false)) {
 
-        if ($route->isSignedURLValid($full, /* absolute */ false)) {
-            // Good signature → continue chain
-            // Also tell bots not to index these signed links
-            header('X-Robots-Tag: noindex, nofollow');
+            // Optional: enforce expiration if present (supports 'expiration' or 'exp')
+            $now = time();
+            $hasExpiration = false;
+
+            if (isset($_GET['expiration'])) {
+                $expires = (int) $_GET['expiration'];   // ← replaced ValidationHelper::integer(...)               
+                $hasExpiration = true;
+                if ($expires < $now) {
+                    FlashData::setFlashData('error', "The URL has expired.");
+                    return new RedirectRenderer('random/part');
+                }
+            } elseif (isset($_GET['exp'])) {
+                $expires = (int) $_GET['exp'];          // ← replaced ValidationHelper::integer(...)
+                $hasExpiration = true;
+                if ($expires < $now) {
+                    FlashData::setFlashData('error', "The URL has expired.");
+                    return new RedirectRenderer('random/part');
+                }
+            }
+
+            // If signature is valid (and not expired if an expiry param exists), continue
             return $next();
         }
 
-        // Bad/expired signature → redirect somewhere safe
-        FlashData::setFlashData('error', sprintf("Invalid URL (%s).", $pathOnly));
+        // Invalid signature → bounce
+        FlashData::setFlashData('error', sprintf("Invalid URL (%s).", $pathWithoutQuery));
         return new RedirectRenderer('random/part');
     }
 }
+

@@ -274,14 +274,20 @@ return [
         ];
         $validated = ValidationHelper::validateFields($required_fields, $_GET);
 
-        // Build a signed link for the (A) route
-        $signedUrl = Route::create('test/share/files/jpg', function () {})
-            ->getSignedURL([
-                'user'     => $validated['user'],
-                'filename' => $validated['filename'],
-            ]);
+        // Optional: allow ?lasts=SECONDS to set a custom expiry
+        if (isset($_GET['lasts'])) {
+            $seconds = (int) $_GET['lasts'];        // ← replaced ValidationHelper::integer(...)
+            if ($seconds > 0) {
+                // Spec uses "expiration" as the param name; include it in the signed URL
+                $validated['expiration'] = time() + $seconds;
+            }
+        }
 
-        return new JSONRenderer(['url' => $signedUrl]);
+        // Build a signed link to the protected route
+        $url = Route::create('test/share/files/jpg', function () {})
+            ->getSignedURL($validated); // Route::getSignedURL will include 'expiration' if present
+
+        return new JSONRenderer(['url' => $url]);
     }),
 
 ];
