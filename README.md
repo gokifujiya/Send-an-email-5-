@@ -45,7 +45,7 @@ This project demonstrates how to send email through **Gmail SMTP** using both:
    ```
 
 ## 🧪 Test
-   '''
+   ```
    php Scripts/mailing-sample.php
    php Scripts/phpmailer-sample.php
    ```
