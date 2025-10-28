@@ -1,18 +1,18 @@
-# Environment and sensitive data
+# Environment & private data
 .env
 private/
-public/images/file-not-found.jpg
+storage/
+trash_misc/
 
-# OS / IDE
+# OS / IDE / logs
 .DS_Store
 *.log
 .vscode/
 .idea/
 
-# Vendor and cache
+# Dependencies
 vendor/
 composer.lock
 
-# Temporary
-storage/
-trash_misc/
+# Postfix example configs only (no real credentials)
+!docs/postfix/*.example

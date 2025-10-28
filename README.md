@@ -1,32 +1,52 @@
-# URL-Signature-Verification-Middleware-5-
+# Send-an-Email-5-
 
-This project demonstrates a time-limited **Signed URL Verification System** implemented in PHP.
+This project demonstrates how to send email through **Gmail SMTP** using both:
+1. **Postfix** as a local mail transfer agent (MTA) relay, and  
+2. **PHPMailer** as an application-level mailer in PHP.
 
-## Features
-- Generates signed URLs for protected resources
-- Middleware verifies URL signatures and expiration times
-- Supports query parameter `lasts` to define temporary link duration
-- Redirects unauthorized or expired requests
-- Includes secure file serving with fallback images
+---
 
-## Testing
-1. Start local server:
+## ✉️ Features
+- Local mail relay (Postfix) → Gmail SMTP  
+- Secure App Password authentication  
+- HTML + Plain-text message templates  
+- Simple examples using PHP’s `mail()` and PHPMailer  
+
+---
+
+## ⚙️ Setup
+1. Install Postfix and configure relay via Gmail:
    ```bash
-   php -S 127.0.0.1:8000 -t public
+   sudo apt-get install postfix
+   sudo nano /etc/postfix/main.cf
    ```
 
-2. Generate signed URL:
-   ```bash
-   http://127.0.0.1:8000/test/share/files/jpg/generate-url?user=233&filename=elephant&lasts=30
+2. Create /etc/postfix/sasl_passwd:
+   ```
+   [smtp.gmail.com]:587 your_email@gmail.com:your_app_password
+   ```
+   Then:
+   ```
+   sudo chmod 600 /etc/postfix/sasl_passwd
+   sudo postmap /etc/postfix/sasl_passwd
+   sudo systemctl reload postfix
    ```
 
-3. Open the returned URL in your browser.
-- ✅ Displays image before expiration
--  ⛔ Redirects after expiration or signature tampering
+3. Create your .env file (not committed):
+   ```
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USERNAME=your_email@gmail.com
+   SMTP_PASSWORD=your_16char_app_password
+   SMTP_FROM_EMAIL=your_email@gmail.com
+   SMTP_FROM_NAME=PHP App
+   SMTP_TO_EMAIL=recipient@example.com
+   SMTP_TO_NAME=Recipient
+   '''
 
-## Files 
-- Middleware/SignatureValidationMiddleware.php — verifies signature and expiration
-- Routing/Route.php — generates and validates signed URLs
-- Routing/routes.php — defines the test routes
-- Response/Render/MediaRenderer.php — displays media safely
-- .env — holds SIGNATURE_SECRET_KEY and other configs (excluded from Git)
+## 🧪 Test
+   '''
+   php Scripts/mailing-sample.php
+   php Scripts/phpmailer-sample.php
+   ```
+Check your inbox for “Hello World, From PHPMailer!”.
