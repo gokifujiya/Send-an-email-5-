@@ -42,7 +42,7 @@ This project demonstrates how to send email through **Gmail SMTP** using both:
    SMTP_FROM_NAME=PHP App
    SMTP_TO_EMAIL=recipient@example.com
    SMTP_TO_NAME=Recipient
-   '''
+   ```
 
 ## 🧪 Test
    '''
